@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>HireSense - Start Interview</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background: #f5f7fa;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            margin-bottom: 20px;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .loading {
+            margin-top: 15px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Start AI Interview</h1>
+
+    <label>Paste Resume:</label>
+    <textarea id="resumeInput" placeholder="Paste your resume here..."></textarea>
+
+    <label>Paste Job Description:</label>
+    <textarea id="jdInput" placeholder="Paste job description here..."></textarea>
+
+    <button id="startBtn">Start Interview</button>
+
+    <div id="loadingMessage" class="loading"></div>
+
+    <script type="module">
+        import { startInterview } from "./api.js";
+
+        const startBtn = document.getElementById("startBtn");
+        const loadingMessage = document.getElementById("loadingMessage");
+
+        startBtn.addEventListener("click", async () => {
+            const resume = document.getElementById("resumeInput").value.trim();
+            const jobDescription = document.getElementById("jdInput").value.trim();
+
+            if (!resume || !jobDescription) {
+                alert("Please fill both resume and job description.");
+                return;
+            }
+
+            try {
+                loadingMessage.innerText = "Starting interview...";
+                startBtn.disabled = true;
+
+                const response = await startInterview(resume, jobDescription);
+
+                if (!response.session_id) {
+                    console.error("Invalid start response:", response);
+                    alert("Failed to start interview.");
+                    startBtn.disabled = false;
+                    loadingMessage.innerText = "";
+                    return;
+                }
+
+                // ✅ Store session properly
+                sessionStorage.setItem("session_id", response.session_id);
+                sessionStorage.setItem("current_question", response.question);
+
+                // Move to interview page
+                window.location.href = "interview.html";
+
+            } catch (err) {
+                console.error("Start error:", err);
+                alert("Backend connection failed.");
+                startBtn.disabled = false;
+                loadingMessage.innerText = "";
+            }
+        });
+    </script>
+
+</body>
+</html>
